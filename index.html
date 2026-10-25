@@ -1,0 +1,567 @@
+<!DOCTYPE html><html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#5427a8"><title>Fruit Catcher Pro | Yinpang Kaayeng</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 15px;
+        min-height: 100vh;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        color: white;
+        background: linear-gradient(
+            -45deg,
+            #ff7eb3,
+            #7b61ff,
+            #45caff,
+            #68e0a0
+        );
+        background-size: 400% 400%;
+        animation: backgroundMove 12s ease infinite;
+    }
+
+    @keyframes backgroundMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+        font-size: 30px;
+        text-shadow: 2px 3px 5px #3338;
+    }
+
+    .subtitle {
+        font-size: 16px;
+    }
+
+    .owner {
+        font-size: 15px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 1px 2px 4px #3338;
+    }
+
+    .panel {
+        max-width: 480px;
+        margin: 15px auto;
+        padding: 16px;
+        border-radius: 20px;
+        background: #ffffffee;
+        color: #44205f;
+        box-shadow: 0 8px 20px #0002;
+    }
+
+    .stats {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-weight: bold;
+    }
+
+    .stat {
+        font-size: 16px;
+    }
+
+    #gameArea {
+        position: relative;
+        height: 350px;
+        max-width: 500px;
+        margin: 20px auto;
+        overflow: hidden;
+        border: 4px solid white;
+        border-radius: 25px;
+        background: linear-gradient(#e0f7ff, #fff0cc);
+        box-shadow: 0 10px 25px #0003;
+    }
+
+    #fruit {
+        position: absolute;
+        display: none;
+        padding: 0;
+        border: none;
+        background: transparent;
+        font-size: 52px;
+        cursor: pointer;
+        touch-action: manipulation;
+        user-select: none;
+        animation: bounce 0.7s ease-in-out infinite alternate;
+        filter: drop-shadow(0 5px 3px #0002);
+    }
+
+    @keyframes bounce {
+        from {
+            transform: scale(0.92) rotate(-8deg);
+        }
+        to {
+            transform: scale(1.08) rotate(8deg);
+        }
+    }
+
+    .control {
+        margin: 5px;
+        padding: 13px 20px;
+        border: none;
+        border-radius: 14px;
+        background: #ff4f87;
+        color: white;
+        font-size: 15px;
+        font-weight: bold;
+        box-shadow: 0 4px 0 #c72c65;
+        cursor: pointer;
+    }
+
+    .control:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 #c72c65;
+    }
+
+    select {
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        margin: 5px;
+    }
+
+    #message {
+        font-weight: bold;
+        font-size: 18px;
+        min-height: 28px;
+    }
+
+    #effects {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .particle {
+        position: absolute;
+        font-size: 25px;
+        animation: pop 0.65s ease-out forwards;
+    }
+
+    @keyframes pop {
+        from {
+            opacity: 1;
+            transform: translate(0, 0) scale(0.5);
+        }
+        to {
+            opacity: 0;
+            transform: translate(var(--x), var(--y)) scale(1.5);
+        }
+    }
+
+    #gameOver {
+        display: none;
+        margin: 15px auto;
+        max-width: 480px;
+        padding: 20px;
+        border-radius: 20px;
+        background: #ffffffee;
+        color: #5427a8;
+        box-shadow: 0 8px 20px #0002;
+    }
+
+    footer {
+        margin: 25px auto 10px;
+        font-size: 12px;
+        line-height: 1.8;
+        max-width: 450px;
+    }
+
+    .copyright {
+        font-weight: bold;
+    }
+</style>
+
+</head><body><h1>🍓 Fruit Catcher Pro 🍍</h1>
+
+<p class="subtitle">
+    Catch fruits. Earn points. Beat your record!
+</p>
+
+<p class="owner">
+    👑 Created & Owned by Yinpang Kaayeng
+</p>
+
+<div class="panel">
+    <div class="stats">
+        <div class="stat">
+            ⭐ Score: <span id="score">0</span>
+        </div>
+
+        <div class="stat">
+            ⏱️ Time: <span id="time">30</span>s
+        </div>
+
+        <div class="stat">
+            🏆 Best: <span id="best">0</span>
+        </div>
+    </div>
+</div>
+
+<div>
+    <label for="level">🎯 Difficulty:</label>
+
+    <select id="level">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+    </select>
+</div>
+
+<div id="gameArea">
+    <div id="effects"></div>
+
+    <button id="fruit" aria-label="Catch the fruit">
+        🍎
+    </button>
+</div>
+
+<p id="message">
+    Ready to play? Tap START!
+</p>
+
+<div id="gameOver">
+    <h2>🎉 Game Over!</h2>
+
+    <p>Your final score is:</p>
+
+    <h2 id="finalScore">0</h2>
+
+    <p id="resultMessage">
+        Great job!
+    </p>
+
+    <p>
+        👑 Game created by Yinpang Kaayeng
+    </p>
+</div>
+
+<button class="control" id="startButton">
+    ▶ START
+</button>
+
+<button class="control" id="restartButton">
+    🔄 RESTART
+</button>
+
+<button class="control" id="soundButton">
+    🔊 SOUND ON
+</button>
+
+<footer>
+    <div>🍎 🍊 🍌 🍓 🍇 🍍 🥭 🍉</div>
+
+    <p>
+        <strong>Fruit Catcher Pro</strong>
+    </p>
+
+    <p>
+        Created and owned by <strong>Yinpang Kaayeng</strong>.
+    </p>
+
+    <p class="copyright">
+        © 2026 Yinpang Kaayeng. All rights reserved.
+    </p>
+
+    <p>
+        Built with HTML, CSS and JavaScript.
+    </p>
+</footer>
+
+<script>
+    const area = document.getElementById("gameArea");
+    const fruit = document.getElementById("fruit");
+    const effects = document.getElementById("effects");
+
+    const scoreText = document.getElementById("score");
+    const timeText = document.getElementById("time");
+    const bestText = document.getElementById("best");
+    const message = document.getElementById("message");
+    const gameOver = document.getElementById("gameOver");
+
+    const levelSelect = document.getElementById("level");
+    const startButton = document.getElementById("startButton");
+    const restartButton = document.getElementById("restartButton");
+    const soundButton = document.getElementById("soundButton");
+
+    const fruits = [
+        "🍎", "🍊", "🍌", "🍓", "🍇",
+        "🍍", "🥝", "🍉", "🥭", "🍒"
+    ];
+
+    let score = 0;
+    let timeLeft = 30;
+    let playing = false;
+    let timer = null;
+    let moveTimer = null;
+    let soundOn = true;
+    let best = 0;
+    let audioContext = null;
+
+    try {
+        best = Number(localStorage.getItem("fruitBest")) || 0;
+    } catch (error) {
+        best = 0;
+    }
+
+    bestText.textContent = best;
+
+    function playSound(frequency = 600) {
+        if (!soundOn) return;
+
+        try {
+            audioContext = audioContext ||
+                new (window.AudioContext ||
+                     window.webkitAudioContext)();
+
+            if (audioContext.state === "suspended") {
+                audioContext.resume();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            oscillator.type = "sine";
+            oscillator.frequency.value = frequency;
+
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            gain.gain.setValueAtTime(
+                0.12,
+                audioContext.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.18
+            );
+
+            oscillator.start();
+            oscillator.stop(
+                audioContext.currentTime + 0.18
+            );
+        } catch (error) {
+            // Gameplay continues if sound is unavailable.
+        }
+    }
+
+    function moveFruit() {
+        const maxX = Math.max(
+            0,
+            area.clientWidth - fruit.offsetWidth
+        );
+
+        const maxY = Math.max(
+            0,
+            area.clientHeight - fruit.offsetHeight
+        );
+
+        fruit.style.left =
+            Math.random() * maxX + "px";
+
+        fruit.style.top =
+            Math.random() * maxY + "px";
+
+        fruit.textContent =
+            fruits[Math.floor(Math.random() * fruits.length)];
+    }
+
+    function makeParticles() {
+        const emojis = ["✨", "⭐", "💖", "🍓", "🌟"];
+
+        const x = fruit.offsetLeft + fruit.offsetWidth / 2;
+        const y = fruit.offsetTop + fruit.offsetHeight / 2;
+
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement("span");
+
+            particle.className = "particle";
+
+            particle.textContent =
+                emojis[Math.floor(Math.random() * emojis.length)];
+
+            particle.style.left = x + "px";
+            particle.style.top = y + "px";
+
+            particle.style.setProperty(
+                "--x",
+                (Math.random() * 140 - 70) + "px"
+            );
+
+            particle.style.setProperty(
+                "--y",
+                (Math.random() * 140 - 70) + "px"
+            );
+
+            effects.appendChild(particle);
+
+            setTimeout(function() {
+                particle.remove();
+            }, 700);
+        }
+    }
+
+    function scorePoint() {
+        if (!playing) return;
+
+        makeParticles();
+
+        score++;
+
+        scoreText.textContent = score;
+
+        playSound(400 + Math.min(score * 25, 800));
+
+        if (score > best) {
+            best = score;
+            bestText.textContent = best;
+
+            try {
+                localStorage.setItem("fruitBest", best);
+            } catch (error) {
+                // Saving may be unavailable in some previews.
+            }
+        }
+
+        moveFruit();
+    }
+
+    fruit.addEventListener("click", scorePoint);
+
+    function startGame() {
+        if (playing) return;
+
+        clearInterval(timer);
+        clearInterval(moveTimer);
+
+        score = 0;
+        timeLeft = 30;
+
+        scoreText.textContent = score;
+        timeText.textContent = timeLeft;
+
+        gameOver.style.display = "none";
+
+        message.textContent =
+            "Go! Catch as many fruits as you can! 🎯";
+
+        playing = true;
+        fruit.style.display = "block";
+
+        moveFruit();
+
+        const level = levelSelect.value;
+
+        let moveSpeed;
+
+        if (level === "easy") {
+            moveSpeed = 2000;
+        } else if (level === "medium") {
+            moveSpeed = 1300;
+        } else {
+            moveSpeed = 750;
+        }
+
+        moveTimer = setInterval(function() {
+            if (playing) moveFruit();
+        }, moveSpeed);
+
+        timer = setInterval(function() {
+            timeLeft--;
+
+            timeText.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }, 1000);
+    }
+
+    function endGame() {
+        clearInterval(timer);
+        clearInterval(moveTimer);
+
+        timer = null;
+        moveTimer = null;
+
+        playing = false;
+        fruit.style.display = "none";
+
+        document.getElementById("finalScore").textContent = score;
+
+        let result;
+
+        if (score >= 25) {
+            result = "Amazing! You're a fruit-catching champion! 🏆";
+        } else if (score >= 15) {
+            result = "Excellent work! You're getting faster! 🌟";
+        } else if (score >= 5) {
+            result = "Great effort! Play again to beat your record! 💪";
+        } else {
+            result = "Keep practising! You can improve your score! 🍓";
+        }
+
+        document.getElementById("resultMessage").textContent = result;
+
+        gameOver.style.display = "block";
+
+        message.textContent = "Your round is complete!";
+
+        playSound(350);
+    }
+
+    function restartGame() {
+        clearInterval(timer);
+        clearInterval(moveTimer);
+
+        timer = null;
+        moveTimer = null;
+
+        playing = false;
+
+        score = 0;
+        timeLeft = 30;
+
+        scoreText.textContent = score;
+        timeText.textContent = timeLeft;
+
+        fruit.style.display = "none";
+        gameOver.style.display = "none";
+
+        message.textContent = "Ready? Tap START to play!";
+
+        effects.innerHTML = "";
+    }
+
+    function toggleSound() {
+        soundOn = !soundOn;
+
+        soundButton.textContent =
+            soundOn ? "🔊 SOUND ON" : "🔇 SOUND OFF";
+
+        if (soundOn) {
+            playSound();
+        }
+    }
+
+    startButton.addEventListener("click", startGame);
+    restartButton.addEventListener("click", restartGame);
+    soundButton.addEventListener("click", toggleSound);
+</script>
+
+</body>
+</html>
